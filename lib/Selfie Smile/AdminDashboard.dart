@@ -4,7 +4,6 @@ import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:firebase_storage/firebase_storage.dart';
 import 'dart:io';
-
 import 'package:permission_handler/permission_handler.dart';
 
 class AdminDashboard extends StatefulWidget {
@@ -17,16 +16,26 @@ class AdminDashboard extends StatefulWidget {
 class _AdminDashboardState extends State<AdminDashboard> {
   final _doctorFormKey = GlobalKey<FormState>();
   final _doctorNameController = TextEditingController();
-  final _doctorSpecialtyController = TextEditingController();
   File? _selectedImage;
   bool _isUploading = false;
+  String? _selectedSpecialty;
+  final List<String> _specialties = [
+    'Dental Implants',
+    'Dental Fillings',
+    'Dental Braces',
+    'Teeth Whitening',
+    'Scaling and Polishing',
+    'Fixed and Removable Prosthetics',
+    'Pediatric Dentistry',
+    'Hollywood Smile',
+  ];
 
   @override
   void dispose() {
     _doctorNameController.dispose();
-    _doctorSpecialtyController.dispose();
     super.dispose();
   }
+
   Future<void> _askCameraPermission() async {
     final status = await Permission.camera.request();
     if (status != PermissionStatus.granted) {
@@ -38,6 +47,7 @@ class _AdminDashboardState extends State<AdminDashboard> {
       );
     }
   }
+
   Future<void> _pickImage() async {
     showModalBottomSheet(
       context: context,
@@ -48,16 +58,17 @@ class _AdminDashboardState extends State<AdminDashboard> {
               ListTile(
                 leading: const Icon(Icons.camera_alt),
                 title: const Text('Take a photo'),
-                  onTap: () async {
-                    Navigator.of(context).pop();
-                    await _askCameraPermission();
-                    final pickedFile = await ImagePicker().pickImage(source: ImageSource.camera);
-                    if (pickedFile != null) {
-                      setState(() {
-                        _selectedImage = File(pickedFile.path);
-                      });
-                    }
-                  }              ),
+                onTap: () async {
+                  Navigator.of(context).pop();
+                  await _askCameraPermission();
+                  final pickedFile = await ImagePicker().pickImage(source: ImageSource.camera);
+                  if (pickedFile != null) {
+                    setState(() {
+                      _selectedImage = File(pickedFile.path);
+                    });
+                  }
+                },
+              ),
               ListTile(
                 leading: const Icon(Icons.photo_library),
                 title: const Text('Choose from gallery'),
@@ -137,7 +148,7 @@ class _AdminDashboardState extends State<AdminDashboard> {
 
         await FirebaseFirestore.instance.collection('doctors').add({
           'name': _doctorNameController.text.trim(),
-          'specialty': _doctorSpecialtyController.text.trim(),
+          'specialty': _selectedSpecialty,
           'imageUrl': imageUrl,
           'createdAt': FieldValue.serverTimestamp(),
         });
@@ -150,9 +161,9 @@ class _AdminDashboardState extends State<AdminDashboard> {
         );
 
         _doctorNameController.clear();
-        _doctorSpecialtyController.clear();
         setState(() {
           _selectedImage = null;
+          _selectedSpecialty = null;
         });
       } catch (e) {
         ScaffoldMessenger.of(context).showSnackBar(
@@ -208,6 +219,7 @@ class _AdminDashboardState extends State<AdminDashboard> {
       }
     }
   }
+
   Future<void> _updateAppointmentStatus(String docId, String status) async {
     try {
       await FirebaseFirestore.instance.collection('appointments').doc(docId).update({
@@ -229,7 +241,6 @@ class _AdminDashboardState extends State<AdminDashboard> {
       );
     }
   }
-
 
   Future<void> _deleteComment(String docId) async {
     final confirm = await _confirmDelete(context, 'comment');
@@ -307,7 +318,6 @@ class _AdminDashboardState extends State<AdminDashboard> {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    // Image Picker
                     GestureDetector(
                       onTap: _pickImage,
                       child: Container(
@@ -345,22 +355,32 @@ class _AdminDashboardState extends State<AdminDashboard> {
                       },
                     ),
                     const SizedBox(height: 16),
-                    TextFormField(
-                      controller: _doctorSpecialtyController,
+                    DropdownButtonFormField<String>(
+                      value: _selectedSpecialty,
                       decoration: InputDecoration(
                         labelText: 'Specialty',
                         border: const OutlineInputBorder(),
                         labelStyle: TextStyle(fontSize: fontSizeText),
                       ),
-                      style: TextStyle(fontSize: fontSizeText),
+                      hint: Text('Select Specialty', style: TextStyle(fontSize: fontSizeText)),
+                      items: _specialties.map((String specialty) {
+                        return DropdownMenuItem<String>(
+                          value: specialty,
+                          child: Text(specialty, style: TextStyle(fontSize: fontSizeText)),
+                        );
+                      }).toList(),
+                      onChanged: (String? newValue) {
+                        setState(() {
+                          _selectedSpecialty = newValue;
+                        });
+                      },
                       validator: (value) {
-                        if (value == null || value.isEmpty) {
-                          return 'Please enter the specialty';
+                        if (value == null) {
+                          return 'Please select a specialty';
                         }
                         return null;
                       },
                     ),
-                    const SizedBox(height: 16),
                     const SizedBox(height: 16),
                     ElevatedButton(
                       onPressed: _isUploading ? null : _addDoctor,
@@ -384,7 +404,7 @@ class _AdminDashboardState extends State<AdminDashboard> {
             StreamBuilder<QuerySnapshot>(
               stream: FirebaseFirestore.instance
                   .collection('doctors')
-                  .orderBy('createdAt', descending: true)
+                  .orderBy('specialty')
                   .snapshots(),
               builder: (context, snapshot) {
                 if (snapshot.hasError) {
@@ -397,52 +417,68 @@ class _AdminDashboardState extends State<AdminDashboard> {
                   return Center(child: Text('No doctors found', style: TextStyle(fontSize: fontSizeText)));
                 }
 
-                return ListView.builder(
-                  shrinkWrap: true,
-                  physics: const NeverScrollableScrollPhysics(),
-                  itemCount: snapshot.data!.docs.length,
-                  itemBuilder: (context, index) {
-                    final doc = snapshot.data!.docs[index];
-                    final data = doc.data() as Map<String, dynamic>;
-                    final docId = doc.id;
+                // Group doctors by specialty
+                Map<String, List<Map<String, dynamic>>> groupedDoctors = {};
+                for (var doc in snapshot.data!.docs) {
+                  final data = doc.data() as Map<String, dynamic>;
+                  final specialty = data['specialty'] ?? 'Unknown';
+                  if (!groupedDoctors.containsKey(specialty)) {
+                    groupedDoctors[specialty] = [];
+                  }
+                  groupedDoctors[specialty]!.add({
+                    'id': doc.id,
+                    'data': data,
+                  });
+                }
 
-                    String createdAtString = data['createdAt'] != null
-                        ? (data['createdAt'] as Timestamp).toDate().toString()
-                        : 'Not specified';
-
-                    return Card(
-                      margin: const EdgeInsets.all(8),
-                      child: ListTile(
-                        leading: data['imageUrl'] != null
-                            ? CircleAvatar(
-                          backgroundImage: NetworkImage(data['imageUrl']),
-                          radius: 30,
-                        )
-                            : const CircleAvatar(
-                          child: Icon(Icons.person),
-                          radius: 30,
-                        ),
-                        title: Text(
-                          data['name'] ?? 'Not specified',
-                          style: TextStyle(fontWeight: FontWeight.bold, fontSize: fontSizeTitle),
-                        ),
-                        subtitle: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            Text('Specialty: ${data['specialty'] ?? 'Not specified'}', style: TextStyle(fontSize: fontSizeText)),
-                            Text('Email: ${data['email'] ?? 'Not specified'}', style: TextStyle(fontSize: fontSizeText)),
-                            Text('Added: $createdAtString', style: TextStyle(fontSize: fontSizeText)),
-                          ],
-                        ),
-                        trailing: IconButton(
-                          icon: const Icon(Icons.delete, color: Colors.red),
-                          onPressed: () async {
-                            await _deleteDoctor(docId);
-                          },
-                        ),
+                return Column(
+                  children: groupedDoctors.keys.map((specialty) {
+                    return ExpansionTile(
+                      title: Text(
+                        specialty,
+                        style: TextStyle(fontSize: fontSizeTitle, fontWeight: FontWeight.bold),
                       ),
+                      children: groupedDoctors[specialty]!.map((doctor) {
+                        final data = doctor['data'];
+                        final docId = doctor['id'];
+                        String createdAtString = data['createdAt'] != null
+                            ? (data['createdAt'] as Timestamp).toDate().toString()
+                            : 'Not specified';
+
+                        return Card(
+                          margin: const EdgeInsets.all(8),
+                          child: ListTile(
+                            leading: data['imageUrl'] != null
+                                ? CircleAvatar(
+                              backgroundImage: NetworkImage(data['imageUrl']),
+                              radius: 30,
+                            )
+                                : const CircleAvatar(
+                              child: Icon(Icons.person),
+                              radius: 30,
+                            ),
+                            title: Text(
+                              data['name'] ?? 'Not specified',
+                              style: TextStyle(fontWeight: FontWeight.bold, fontSize: fontSizeTitle),
+                            ),
+                            subtitle: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Text('Specialty: ${data['specialty'] ?? 'Not specified'}', style: TextStyle(fontSize: fontSizeText)),
+                                Text('Added: $createdAtString', style: TextStyle(fontSize: fontSizeText)),
+                              ],
+                            ),
+                            trailing: IconButton(
+                              icon: const Icon(Icons.delete, color: Colors.red),
+                              onPressed: () async {
+                                await _deleteDoctor(docId);
+                              },
+                            ),
+                          ),
+                        );
+                      }).toList(),
                     );
-                  },
+                  }).toList(),
                 );
               },
             ),
@@ -458,10 +494,9 @@ class _AdminDashboardState extends State<AdminDashboard> {
             StreamBuilder<QuerySnapshot>(
               stream: FirebaseFirestore.instance
                   .collection('appointments')
-                  .where('status', isEqualTo: 'pending') // فقط المواعيد المعلقة
+                  .where('status', isEqualTo: 'pending')
                   .orderBy('created_at', descending: true)
                   .snapshots(),
-
               builder: (context, snapshot) {
                 if (snapshot.hasError) {
                   return Center(child: Text('Error loading appointments: ${snapshot.error}', style: TextStyle(fontSize: fontSizeText)));
@@ -494,6 +529,7 @@ class _AdminDashboardState extends State<AdminDashboard> {
                             Text('Specialty: ${data['specialty'] ?? 'Not specified'}', style: TextStyle(fontSize: fontSizeText)),
                             Text('Patient: ${data['name'] ?? 'Not specified'}', style: TextStyle(fontSize: fontSizeText)),
                             Text('Email: ${data['userEmail'] ?? 'Not specified'}', style: TextStyle(fontSize: fontSizeText)),
+                            Text('Phone (WhatsApp): ${data['phone'] ?? 'Not provided'}', style: TextStyle(fontSize: fontSizeText)),
                             Text('Date: ${data['date'] ?? 'Not specified'}', style: TextStyle(fontSize: fontSizeText)),
                             Text('Time: ${data['time'] ?? 'Not specified'}', style: TextStyle(fontSize: fontSizeText)),
                           ],

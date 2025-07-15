@@ -50,7 +50,14 @@ class _HomeScreenState extends State<HomeScreen> {
       ),
       bottomNavigationBar: Container(
         decoration: BoxDecoration(
-          borderRadius: const BorderRadius.vertical(top: Radius.circular(16)),
+          gradient: LinearGradient(
+            colors: [
+              const Color(0xFF00B4DB).withOpacity(0.4),
+              const Color(0xFF8E2DE2).withOpacity(0.4),
+            ],
+            begin: Alignment.topLeft,
+            end: Alignment.bottomRight,
+          ),
           boxShadow: [
             BoxShadow(
               color: Colors.black.withOpacity(0.1),
@@ -59,43 +66,70 @@ class _HomeScreenState extends State<HomeScreen> {
             ),
           ],
         ),
-        child: ClipRRect(
-          borderRadius: const BorderRadius.vertical(top: Radius.circular(16)),
-          child: BottomNavigationBar(
-            currentIndex: _currentIndex,
-            onTap: (index) {
-              setState(() {
-                _currentIndex = index;
-              });
-              _pageController.jumpToPage(index);
-            },
-            items: const [
-              BottomNavigationBarItem(
-                icon: Icon(Icons.home_outlined),
-                activeIcon: Icon(Icons.home),
-                label: 'HOME',
+        padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 8),
+        child: Row(
+          mainAxisAlignment: MainAxisAlignment.spaceAround,
+          children: List.generate(3, (index) {
+            final icons = [
+              Icons.home,
+              Icons.chat,
+              Icons.person,
+            ];
+
+            final labels = [
+              "HOME",
+              "CHAT",
+              "DOCTOR",
+            ];
+
+            final isSelected = _currentIndex == index;
+
+            return GestureDetector(
+              onTap: () {
+                setState(() {
+                  _currentIndex = index;
+                });
+                _pageController.jumpToPage(index);
+              },
+              child: TweenAnimationBuilder<double>(
+                tween: Tween<double>(begin: 1.0, end: isSelected ? 1.2 : 1.0),
+                duration: const Duration(milliseconds: 300),
+                curve: Curves.easeOut,
+                builder: (context, scale, child) {
+                  return Transform.scale(
+                    scale: scale,
+                    child: AnimatedContainer(
+                      duration: const Duration(milliseconds: 300),
+                      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                      decoration: BoxDecoration(
+                        color: isSelected ? Colors.white.withOpacity(0.2) : Colors.transparent,
+                        borderRadius: BorderRadius.circular(16),
+                      ),
+                      child: Column(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          Icon(
+                            icons[index],
+                            color: isSelected ? Colors.black : Colors.black54,
+                            size: 26,
+                          ),
+                          const SizedBox(height: 4),
+                          Text(
+                            labels[index],
+                            style: TextStyle(
+                              color: isSelected ? Colors.black : Colors.black54,
+                              fontSize: 11,
+                              fontWeight: FontWeight.bold,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  );
+                },
               ),
-              BottomNavigationBarItem(
-                icon: Icon(Icons.chat_outlined),
-                activeIcon: Icon(Icons.chat),
-                label: 'CHAT',
-              ),
-              BottomNavigationBarItem(
-                icon: Icon(Icons.person_outline),
-                activeIcon: Icon(Icons.person),
-                label: 'DOCTOR',
-              ),
-            ],
-            type: BottomNavigationBarType.fixed,
-            backgroundColor: Colors.white,
-            selectedItemColor: Colors.blue,
-            unselectedItemColor: Colors.grey,
-            selectedLabelStyle: const TextStyle(fontSize: 12),
-            unselectedLabelStyle: const TextStyle(fontSize: 12),
-            elevation: 0,
-            showSelectedLabels: true,
-            showUnselectedLabels: true,
-          ),
+            );
+          }),
         ),
       ),
     );
@@ -117,7 +151,7 @@ class _HomeContent extends StatelessWidget {
             Padding(
               padding: const EdgeInsets.only(left: 16.0, top: 16.0),
               child: IconButton(
-                icon: const Icon(Icons.arrow_back, color: Colors.blue),
+                icon: const Icon(Icons.arrow_back, color: Colors.black),
                 onPressed: () {
                   Navigator.pushReplacement(
                     context,
@@ -139,7 +173,7 @@ class _HomeContent extends StatelessWidget {
                 child: ClipRRect(
                   borderRadius: BorderRadius.circular(16),
                   child: Image.asset(
-                    'assets/images/Grey.png',
+                    'assets/images/logo.jpg',
                     fit: BoxFit.contain,
                   ),
                 ),
@@ -166,7 +200,7 @@ class _HomeContent extends StatelessWidget {
               onTap: () => _homeScreenState._setSelectedService('Teeth Whitening'),
             ),
             ServiceTile(
-              title: 'Tartar Cleaning',
+              title: 'scaling and Polishing',
               imagePath: 'assets/images/er.png',
               onTap: () => _homeScreenState._setSelectedService('Tartar Cleaning'),
             ),
@@ -184,6 +218,72 @@ class _HomeContent extends StatelessWidget {
               title: 'Hollywood Smile',
               imagePath: 'assets/images/holoud.png',
               onTap: () => _homeScreenState._setSelectedService('Hollywood Smile'),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+class ServiceTile extends StatelessWidget {
+  final String title;
+  final String imagePath;
+  final VoidCallback onTap;
+
+  const ServiceTile({
+    required this.title,
+    required this.imagePath,
+    required this.onTap,
+    super.key,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return GestureDetector(
+      onTap: onTap,
+      child: Container(
+        margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+        padding: const EdgeInsets.all(16),
+        decoration: BoxDecoration(
+          borderRadius: BorderRadius.circular(20),
+          gradient: LinearGradient(
+            colors: [
+              const Color(0xFF00B4DB).withOpacity(0.4), // سماوي شفاف
+              const Color(0xFF8E2DE2).withOpacity(0.4), // بنفسجي شفاف
+            ],
+            begin: Alignment.topLeft,
+            end: Alignment.bottomRight,
+          ),
+          boxShadow: [
+            BoxShadow(
+              color: Colors.black.withOpacity(0.1),
+              blurRadius: 8,
+              offset: const Offset(0, 4),
+            ),
+          ],
+        ),
+        child: Row(
+          children: [
+            ClipRRect(
+              borderRadius: BorderRadius.circular(12),
+              child: Image.asset(
+                imagePath,
+                width: 60,
+                height: 60,
+                fit: BoxFit.cover,
+              ),
+            ),
+            const SizedBox(width: 16),
+            Expanded(
+              child: Text(
+                title,
+                style: const TextStyle(
+                  fontSize: 18,
+                  fontWeight: FontWeight.bold,
+                  color: Colors.black87,
+                ),
+              ),
             ),
           ],
         ),

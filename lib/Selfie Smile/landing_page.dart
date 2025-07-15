@@ -16,11 +16,9 @@ class LandingPage extends StatefulWidget {
 
 class _LandingPageState extends State<LandingPage> {
   final List<String> clinicImages = [
-    'assets/images/asnan.jpg',
-    'assets/images/drimage.jpg',
-    'assets/images/holoud.png',
-    'assets/images/drimage.jpg',
-    'assets/images/asnan.jpg',
+    'assets/images/img1.jpg',
+    'assets/images/img2.jpg',
+    'assets/images/img3.jpg',
   ];
 
   Future<void> _signOut() async {
@@ -41,168 +39,191 @@ class _LandingPageState extends State<LandingPage> {
     final screenHeight = MediaQuery.of(context).size.height;
     final screenWidth = MediaQuery.of(context).size.width;
 
-    return Scaffold(
-      appBar: AppBar(
-        automaticallyImplyLeading: false, // إخفاء زر الرجوع التلقائي
-        actions: [
-          if (user != null) // يظهر زر الخروج فقط إذا كان المستخدم مسجل الدخول
-            IconButton(
-              icon: const Icon(Icons.logout),
-              onPressed: _signOut,
-              tooltip: 'تسجيل الخروج',
-            ),
-        ],
+    return Container(
+      decoration: const BoxDecoration(
+        gradient: LinearGradient(
+          colors: [Colors.cyan, Colors.purple],
+          begin: Alignment.topCenter,
+          end: Alignment.bottomCenter,
+        ),
       ),
-      body: SingleChildScrollView(
-        child: Column(
-          children: [
-            // Top Section: Auto-scrolling Clinic Images
-            SizedBox(
-              height: screenHeight * 0.3,
-              child: carousel.CarouselSlider(
-                options: carousel.CarouselOptions(
-                  height: double.infinity,
-                  autoPlay: true,
-                  autoPlayInterval: const Duration(seconds: 3),
-                  enlargeCenterPage: true,
-                  aspectRatio: 16 / 9,
-                  viewportFraction: 0.4,
-                ),
-                items: clinicImages.map((imagePath) {
-                  return Builder(
-                    builder: (BuildContext context) {
-                      return Padding(
-                        padding: const EdgeInsets.all(8.0),
-                        child: ClipRRect(
-                          borderRadius: BorderRadius.circular(40),
-                          child: Container(
-                            width: screenWidth * 0.4,
-                            decoration: BoxDecoration(
-                              image: DecorationImage(
-                                image: AssetImage(imagePath),
-                                fit: BoxFit.cover,
+      child: Scaffold(
+        backgroundColor: Colors.transparent,
+        appBar: AppBar(
+          backgroundColor: Colors.transparent, // شفاف
+          elevation: 0, // بدون ظل
+          automaticallyImplyLeading: false,
+          iconTheme: const IconThemeData(color: Colors.white),
+          actions: [
+            if (user != null)
+              IconButton(
+                icon: const Icon(Icons.logout, color: Colors.white),
+                onPressed: _signOut,
+                tooltip: 'تسجيل الخروج',
+              ),
+          ],
+        ),
+        body: SingleChildScrollView(
+          child: Column(
+            children: [
+              SizedBox(
+                height: screenHeight * 0.3,
+                child: carousel.CarouselSlider(
+                  options: carousel.CarouselOptions(
+                    height: double.infinity,
+                    autoPlay: true,
+                    autoPlayInterval: const Duration(seconds: 3),
+                    enlargeCenterPage: true,
+                    aspectRatio: 16 / 9,
+                    viewportFraction: 0.4,
+                  ),
+                  items: clinicImages.map((imagePath) {
+                    return Builder(
+                      builder: (BuildContext context) {
+                        return Padding(
+                          padding: const EdgeInsets.all(8.0),
+                          child: ClipRRect(
+                            borderRadius: BorderRadius.circular(40),
+                            child: Container(
+                              width: screenWidth * 0.4,
+                              decoration: BoxDecoration(
+                                image: DecorationImage(
+                                  image: AssetImage(imagePath),
+                                  fit: BoxFit.cover,
+                                ),
+                                border: Border.all(color: Colors.white, width: 2),
                               ),
-                              border: Border.all(color: Colors.white, width: 2),
                             ),
                           ),
-                        ),
-                      );
-                    },
-                  );
-                }).toList(),
-              ),
-            ),
-
-            // Middle Section: Map
-            Padding(
-              padding: EdgeInsets.symmetric(vertical: screenHeight * 0.02),
-              child: Center(
-                child: Column(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
-                    const Text(
-                      'Find Us Here',
-                      style: TextStyle(
-                        fontSize: 24,
-                        fontWeight: FontWeight.bold,
-                        color: Colors.blue,
-                      ),
-                    ),
-                    SizedBox(height: screenHeight * 0.01),
-                    GestureDetector(
-                      onTap: () async {
-                        const String googleMapsUrl =
-                            'https://maps.app.goo.gl/1G5G7YUWFMVtC6ek8?g_st=com.google.maps.preview.copy';
-                        if (await canLaunchUrl(Uri.parse(googleMapsUrl))) {
-                          await launchUrl(Uri.parse(googleMapsUrl), mode: LaunchMode.externalApplication);
-                        } else {
-                          debugPrint('Could not launch Google Maps');
-                        }
+                        );
                       },
-                      child: Container(
-                        width: screenWidth * 0.8,
-                        height: screenHeight * 0.2,
-                        decoration: BoxDecoration(
-                          image: const DecorationImage(
-                            image: AssetImage('assets/images/img.png'),
-                            fit: BoxFit.cover,
-                          ),
-                          borderRadius: BorderRadius.circular(12),
-                          boxShadow: [
-                            BoxShadow(
-                              color: Colors.grey.shade300,
-                              blurRadius: 5,
-                              offset: const Offset(0, 3),
-                            ),
-                          ],
+                    );
+                  }).toList(),
+                ),
+              ),
+              Padding(
+                padding: EdgeInsets.symmetric(vertical: screenHeight * 0.02),
+                child: Center(
+                  child: Column(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      const Text(
+                        'Find Us Here',
+                        style: TextStyle(
+                          fontSize: 24,
+                          fontWeight: FontWeight.bold,
+                          color: Colors.white,
+                          shadows: [Shadow(color: Colors.black26, offset: Offset(1, 1), blurRadius: 2)],
                         ),
                       ),
-                    ),
-                    SizedBox(height: screenHeight * 0.02),
-                    const Text(
-                      'Tap the map to get directions',
-                      style: TextStyle(
-                        fontSize: 14,
-                        color: Colors.grey,
+                      SizedBox(height: screenHeight * 0.01),
+                      GestureDetector(
+                        onTap: () async {
+                          const String googleMapsUrl =
+                              'https://maps.app.goo.gl/nYi3ePcm6gaLe6PNA?g_st=ipc';
+                          if (await canLaunchUrl(Uri.parse(googleMapsUrl))) {
+                            await launchUrl(Uri.parse(googleMapsUrl), mode: LaunchMode.externalApplication);
+                          } else {
+                            debugPrint('Could not launch Google Maps');
+                          }
+                        },
+                        child: Container(
+                          width: screenWidth * 0.8,
+                          height: screenHeight * 0.2,
+                          decoration: BoxDecoration(
+                            image: const DecorationImage(
+                              image: AssetImage('assets/images/locatin.png'),
+                              fit: BoxFit.cover,
+                            ),
+                            borderRadius: BorderRadius.circular(12),
+                            border: Border.all(color: Colors.white, width: 2),
+                            boxShadow: [
+                              BoxShadow(
+                                color: Colors.black26,
+                                blurRadius: 5,
+                                offset: const Offset(0, 3),
+                              ),
+                            ],
+                          ),
+                        ),
                       ),
-                    ),
-                  ],
+                      SizedBox(height: screenHeight * 0.02),
+                      const Text(
+                        'Tap the map to get directions',
+                        style: TextStyle(
+                          fontSize: 14,
+                          color: Colors.white70,
+                          shadows: [Shadow(color: Colors.black26, offset: Offset(1, 1), blurRadius: 2)],
+                        ),
+                      ),
+                    ],
+                  ),
                 ),
               ),
-            ),
-
-            // Slide to Enter Button
-            Padding(
-              padding: EdgeInsets.symmetric(
-                horizontal: screenWidth * 0.1,
-                vertical: screenHeight * 0.02,
-              ),
-              child: SlideAction(
-                text: 'Slide to Enter App',
-                textStyle: const TextStyle(
-                  fontSize: 18,
-                  color: Colors.black87,
-                  fontWeight: FontWeight.w500,
-                ),
-                outerColor: Colors.grey[200],
-                innerColor: Colors.blue,
-                sliderButtonIcon: const Icon(Icons.arrow_forward, color: Colors.white),
-                onSubmit: () {
-                  Navigator.pushReplacement(
-                    context,
-                    MaterialPageRoute(builder: (context) => const HomeScreen()),
-                  );
-                },
-              ),
-            ),
-
-            // Admin Button (Visible only to admin)
-            if (user != null && user.email == AdminPage.adminEmail)
               Padding(
                 padding: EdgeInsets.symmetric(
                   horizontal: screenWidth * 0.1,
-                  vertical: screenHeight * 0.01,
+                  vertical: screenHeight * 0.02,
                 ),
-                child: ElevatedButton(
-                  onPressed: () {
-                    Navigator.push(
+                child: SlideAction(
+                  text: 'Slide to Enter App',
+                  textStyle: const TextStyle(
+                    fontSize: 18,
+                    color: Colors.white,
+                    fontWeight: FontWeight.w500,
+                  ),
+                  outerColor: Colors.white.withOpacity(0.2),
+                  innerColor: Colors.white.withOpacity(0.5),
+                  sliderButtonIcon: const Icon(Icons.arrow_forward, color: Colors.purple),
+                  onSubmit: () {
+                    Navigator.pushReplacement(
                       context,
-                      MaterialPageRoute(builder: (context) => const AdminPage()),
+                      MaterialPageRoute(builder: (context) => const HomeScreen()),
                     );
                   },
-                  style: ElevatedButton.styleFrom(
-                    minimumSize: Size(screenWidth * 0.8, screenHeight * 0.06),
-                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-                    backgroundColor: Colors.blue,
-                    foregroundColor: Colors.white,
-                  ),
-                  child: const Text(
-                    'Admin Panel',
-                    style: TextStyle(fontSize: 18),
-                  ),
                 ),
               ),
-          ],
+              if (user != null && user.email == AdminPage.adminEmail)
+                Padding(
+                  padding: EdgeInsets.symmetric(
+                    horizontal: screenWidth * 0.1,
+                    vertical: screenHeight * 0.01,
+                  ),
+                  child: ElevatedButton(
+                    onPressed: () {
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(builder: (context) => const AdminPage()),
+                      );
+                    },
+                    style: ElevatedButton.styleFrom(
+                      minimumSize: Size(screenWidth * 0.8, screenHeight * 0.06),
+                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                      backgroundColor: Colors.transparent,
+                      foregroundColor: Colors.white,
+                    ),
+                    child: Container(
+                      width: double.infinity,
+                      height: screenHeight * 0.06,
+                      decoration: BoxDecoration(
+                        gradient: const LinearGradient(
+                          colors: [Colors.cyan, Colors.purple],
+                          begin: Alignment.topLeft,
+                          end: Alignment.bottomRight,
+                        ),
+                        borderRadius: BorderRadius.circular(12),
+                      ),
+                      child: const Center(
+                        child: Text(
+                          'Admin Panel',
+                          style: TextStyle(fontSize: 18),
+                        ),
+                      ),
+                    ),
+                  ),
+                ),
+            ],
+          ),
         ),
       ),
     );

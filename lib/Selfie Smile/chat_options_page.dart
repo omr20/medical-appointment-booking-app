@@ -16,35 +16,61 @@ class ChatOptionsPage extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
-        title: const Text('Contact Us'),
-        backgroundColor: Colors.white,
-        foregroundColor: Colors.black,
-        elevation: 0,
-      ),
-      body: Padding(
-        padding: const EdgeInsets.all(20.0),
+      // Remove default appBar and use gradient custom one
+      body: Container(
+        decoration: BoxDecoration(
+          gradient: LinearGradient(
+            colors: [
+              const Color(0xFF00B4DB).withOpacity(0.4), // سماوي شفاف
+              const Color(0xFF8E2DE2).withOpacity(0.4), // بنفسجي شفاف
+            ],
+            begin: Alignment.topLeft,
+            end: Alignment.bottomRight,
+          ),
+        ),
         child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            const Text(
-              'You can communicate with the clinic via the following applications:',
-              style: TextStyle(fontSize: 16, color: Colors.grey),
+            // Custom AppBar
+            Container(
+              padding: const EdgeInsets.only(top: 40, left: 16, right: 16, bottom: 16),
+              width: double.infinity,
+              child: const Text(
+                'Contact Us',
+                style: TextStyle(
+                  fontSize: 24,
+                  fontWeight: FontWeight.bold,
+                  color: Colors.black,
+                ),
+              ),
             ),
-            const SizedBox(height: 20),
-            GestureDetector(
-              onTap: () => _openUrl('https://wa.me/201066471507'),
-              child: contactTile('assets/images/wahts.png', 'WhatsApp'),
-            ),
-            const SizedBox(height: 16),
-            GestureDetector(
-              onTap: () => _openUrl('https://www.instagram.com/omr17_/'),
-              child: contactTile('assets/images/insta.png', 'Instagram'),
-            ),
-            const SizedBox(height: 16),
-            GestureDetector(
-              onTap: () => _openUrl('tel:+201066471507'),
-              child: contactTile('assets/images/phone.png', 'Phone'),
+            Expanded(
+              child: Padding(
+                padding: const EdgeInsets.all(20.0),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    const Text(
+                      'You can communicate with the clinic via the following applications:',
+                      style: TextStyle(fontSize: 16, color: Colors.black87),
+                    ),
+                    const SizedBox(height: 20),
+                    GestureDetector(
+                      onTap: () => _openUrl('https://wa.me/201221257661'),
+                      child: contactTile('assets/images/App.png', 'WhatsApp'),
+                    ),
+                    const SizedBox(height: 16),
+                    GestureDetector(
+                      onTap: () => _openUrl('https://www.instagram.com/selfiesmile57/'),
+                      child: contactTile('assets/images/insta.png', 'Instagram'),
+                    ),
+                    const SizedBox(height: 16),
+                    GestureDetector(
+                      onTap: () => _openUrl('tel:+201221257661'),
+                      child: contactTile('assets/images/phone.png', 'Phone'),
+                    ),
+                  ],
+                ),
+              ),
             ),
           ],
         ),
@@ -56,12 +82,19 @@ class ChatOptionsPage extends StatelessWidget {
     return Container(
       padding: const EdgeInsets.all(16.0),
       decoration: BoxDecoration(
-        color: Colors.white,
+        gradient: LinearGradient(
+          colors: [
+            const Color(0xFF00B4DB).withOpacity(0.3),
+            const Color(0xFF8E2DE2).withOpacity(0.3),
+          ],
+          begin: Alignment.topLeft,
+          end: Alignment.bottomRight,
+        ),
         borderRadius: BorderRadius.circular(12),
         boxShadow: [
           BoxShadow(
-            color: Colors.grey.shade200,
-            blurRadius: 5,
+            color: Colors.black.withOpacity(0.1),
+            blurRadius: 8,
             offset: const Offset(0, 3),
           ),
         ],
@@ -70,7 +103,10 @@ class ChatOptionsPage extends StatelessWidget {
         children: [
           Image.asset(iconPath, width: 40, height: 40),
           const SizedBox(width: 16),
-          Text(label, style: const TextStyle(fontSize: 18, fontWeight: FontWeight.w500)),
+          Text(
+            label,
+            style: const TextStyle(fontSize: 18, fontWeight: FontWeight.w500, color: Colors.black),
+          ),
         ],
       ),
     );
